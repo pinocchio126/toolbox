@@ -1,4 +1,4 @@
-# tools/rename_tool.py - 重命名工具（支持统计卡片点击查看详情）
+# tools/rename_tool.py - 重命名工具（支持统计卡片点击查看详情，按钮右对齐）
 import os
 import re
 import tkinter as tk
@@ -115,7 +115,7 @@ class RenameTool(BaseToolWindow):
         )
         self.mode_label.pack(side="left", padx=(20, 0))
 
-        # ----- 操作按钮 -----
+        # ----- 操作按钮（调整布局：左侧预览+刷新，右侧执行重命名）-----
         action_frame = ctk.CTkFrame(main, fg_color="transparent")
         action_frame.pack(fill="x", padx=pad, pady=(0, 12))
 
@@ -126,8 +126,12 @@ class RenameTool(BaseToolWindow):
             "font": FONT_SMALL_BOLD,
         }
 
+        # 左侧按钮组（预览 + 刷新）
+        left_btns = ctk.CTkFrame(action_frame, fg_color="transparent")
+        left_btns.pack(side="left", fill="x", expand=True)
+
         self.preview_btn = ctk.CTkButton(
-            action_frame,
+            left_btns,
             text="预览",
             **btn_style,
             fg_color=COLORS["warning"],
@@ -136,6 +140,17 @@ class RenameTool(BaseToolWindow):
         )
         self.preview_btn.pack(side="left", padx=(0, 10))
 
+        self.refresh_btn = ctk.CTkButton(
+            left_btns,
+            text="刷新",
+            **btn_style,
+            fg_color=COLORS["text_hint"],
+            hover_color="#7A8794",
+            command=self.preview,
+        )
+        self.refresh_btn.pack(side="left")
+
+        # 右侧按钮（执行重命名）
         self.execute_btn = ctk.CTkButton(
             action_frame,
             text="执行重命名",
@@ -144,17 +159,7 @@ class RenameTool(BaseToolWindow):
             hover_color="#009A27",
             command=self.execute,
         )
-        self.execute_btn.pack(side="left", padx=(0, 10))
-
-        self.refresh_btn = ctk.CTkButton(
-            action_frame,
-            text="刷新",
-            **btn_style,
-            fg_color=COLORS["text_hint"],
-            hover_color="#7A8794",
-            command=self.preview,
-        )
-        self.refresh_btn.pack(side="left")
+        self.execute_btn.pack(side="right")
 
         # ----- 文件列表表格（ttk.Treeview）-----
         table_container = ctk.CTkFrame(
@@ -228,25 +233,41 @@ class RenameTool(BaseToolWindow):
         result_btn_frame = ctk.CTkFrame(main, fg_color="transparent")
         result_btn_frame.pack(fill="x", padx=pad, pady=(0, pad))
 
-        # btn_res_style = {'width': 120, 'height': 30, 'corner_radius': 8, 'font': FONT_SMALL_BOLD}
+        btn_res_style = {
+            "width": 120,
+            "height": 30,
+            "corner_radius": 8,
+            "font": FONT_SMALL_BOLD,
+        }
 
-        # ctk.CTkButton(result_btn_frame, text="查看成功列表", **btn_res_style,
-        #               fg_color=COLORS['success'],
-        #               hover_color="#009A27",
-        #               command=lambda: self._show_result_list('success')).pack(side='left', padx=(0, 10))
+        ctk.CTkButton(
+            result_btn_frame,
+            text="查看成功列表",
+            **btn_res_style,
+            fg_color=COLORS["success"],
+            hover_color="#009A27",
+            command=lambda: self._show_result_list("success"),
+        ).pack(side="left", padx=(0, 10))
 
-        # ctk.CTkButton(result_btn_frame, text="查看失败列表", **btn_res_style,
-        #               fg_color=COLORS['danger'],
-        #               hover_color="#D93636",
-        #               command=lambda: self._show_result_list('failed')).pack(side='left', padx=(0, 10))
+        ctk.CTkButton(
+            result_btn_frame,
+            text="查看失败列表",
+            **btn_res_style,
+            fg_color=COLORS["danger"],
+            hover_color="#D93636",
+            command=lambda: self._show_result_list("failed"),
+        ).pack(side="left", padx=(0, 10))
 
-        # ctk.CTkButton(result_btn_frame, text="查看全部完成", **btn_res_style,
-        #               fg_color=COLORS['primary'],
-        #               hover_color=COLORS['primary_hover'],
-        #               command=lambda: self._show_result_list('all_done')).pack(side='left')
+        ctk.CTkButton(
+            result_btn_frame,
+            text="查看全部完成",
+            **btn_res_style,
+            fg_color=COLORS["primary"],
+            hover_color=COLORS["primary_hover"],
+            command=lambda: self._show_result_list("all_done"),
+        ).pack(side="left")
 
-    # ---------- 核心方法 ----------
-
+    # ---------- 核心方法（保持不变） ----------
     def select_path(self):
         path = filedialog.askdirectory(title="选择文件夹或根目录")
         if path:
@@ -255,13 +276,9 @@ class RenameTool(BaseToolWindow):
             self.preview()
 
     def _analyze_path(self):
-        """分析路径，返回 mode, mapping {folder: drama_name}
-        批量模式下，返回所有直接子文件夹（无论是否含 .mp4）。
-        """
         if not self.selected_path:
             return None, {}
 
-        # 检查直接子级 .mp4
         has_mp4_direct = any(
             f.lower().endswith(".mp4")
             for f in os.listdir(self.selected_path)
@@ -272,7 +289,6 @@ class RenameTool(BaseToolWindow):
             drama_name = os.path.basename(self.selected_path)
             return "single", {self.selected_path: drama_name}
         else:
-            # 批量模式：获取所有直接子目录（即使空）
             subdirs = [
                 os.path.join(self.selected_path, d)
                 for d in os.listdir(self.selected_path)
@@ -284,7 +300,6 @@ class RenameTool(BaseToolWindow):
             return "batch", folder_map
 
     def preview(self):
-        # 清空树
         for item in self.tree.get_children():
             self.tree.delete(item)
         self.file_data.clear()
@@ -476,10 +491,8 @@ class RenameTool(BaseToolWindow):
                 self.tree.item(child, values=tuple(vals))
                 break
 
-    # ---------- 查看结果列表（核心功能）----------
+    # ---------- 查看结果列表 ----------
     def _show_result_list(self, filter_type):
-        """弹出窗口显示文件列表，支持多种筛选类型"""
-        # 定义筛选逻辑
         if filter_type == "total":
             items = self.file_data
             title = "📄 全部文件"
@@ -516,7 +529,6 @@ class RenameTool(BaseToolWindow):
             messagebox.showinfo("提示", f"没有 {title} 记录。")
             return
 
-        # 创建弹窗
         win = ctk.CTkToplevel(self.window)
         win.title(title)
         win.geometry("850x450")
@@ -525,11 +537,9 @@ class RenameTool(BaseToolWindow):
         win.focus_force()
         win.grab_set()
 
-        # 主框架
         main_frame = ctk.CTkFrame(win, fg_color=COLORS["bg_white"], corner_radius=10)
         main_frame.pack(fill="both", expand=True, padx=10, pady=10)
 
-        # 标题
         ctk.CTkLabel(
             main_frame,
             text=title,
@@ -537,7 +547,6 @@ class RenameTool(BaseToolWindow):
             text_color=COLORS["text_primary"],
         ).pack(pady=(10, 5))
 
-        # 表格框架
         tree_frame = tk.Frame(main_frame, bg=COLORS["bg_white"])
         tree_frame.pack(fill="both", expand=True, padx=5, pady=5)
 
@@ -576,7 +585,6 @@ class RenameTool(BaseToolWindow):
         tree.pack(side="left", fill="both", expand=True)
         scrollbar.pack(side="right", fill="y")
 
-        # 插入数据
         for d in items:
             if d.get("done", False) and not d.get("failed", False):
                 status_text = "✅ 成功"
@@ -592,7 +600,6 @@ class RenameTool(BaseToolWindow):
                 values=(d["old"], d["new"] if d.get("new") else "-", status_text),
             )
 
-        # 底部关闭按钮
         ctk.CTkButton(
             main_frame,
             text="关闭",
