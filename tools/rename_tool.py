@@ -1,4 +1,4 @@
-# tools/rename_tool.py - 重命名工具（支持自定义剧名输入，仅单剧目模式）
+# tools/rename_tool.py - 重命名工具（无自定义剧名输入框）
 import os
 import re
 import tkinter as tk
@@ -28,8 +28,6 @@ class RenameTool(BaseToolWindow):
         self.file_data = []
         self.folder_stats = {}
         self.stat_cards = {}
-        # 自定义剧名（仅单剧目模式使用）
-        self.custom_drama_name = None
 
     def setup_ui(self):
         main = self.window
@@ -75,7 +73,7 @@ class RenameTool(BaseToolWindow):
             card.pack(side="left", padx=(0, 12), fill="x", expand=True)
             self.stat_cards[label] = card
 
-        # ----- 设置区域（路径选择 + 模式提示 + 自定义剧名输入）-----
+        # ----- 设置区域（路径选择 + 模式提示）-----
         settings_frame = ctk.CTkFrame(
             main, fg_color=COLORS["bg_white"], corner_radius=10
         )
@@ -84,13 +82,12 @@ class RenameTool(BaseToolWindow):
         settings_inner = ctk.CTkFrame(settings_frame, fg_color="transparent")
         settings_inner.pack(fill="x", padx=16, pady=14)
 
-        # ---- 行0：路径选择 ----
         ctk.CTkLabel(
             settings_inner,
             text="目标路径",
             font=FONT_MEDIUM,
             text_color=COLORS["text_secondary"],
-        ).grid(row=0, column=0, sticky="w", padx=(0, 10), pady=5)
+        ).pack(side="left")
 
         self.path_display = ctk.CTkLabel(
             settings_inner,
@@ -98,7 +95,7 @@ class RenameTool(BaseToolWindow):
             font=FONT_MEDIUM,
             text_color=COLORS["text_hint"],
         )
-        self.path_display.grid(row=0, column=1, sticky="w", padx=(0, 10), pady=5)
+        self.path_display.pack(side="left", padx=(10, 12))
 
         self.select_btn = ctk.CTkButton(
             settings_inner,
@@ -111,67 +108,12 @@ class RenameTool(BaseToolWindow):
             hover_color=COLORS["primary_hover"],
             command=self.select_path,
         )
-        self.select_btn.grid(row=0, column=2, sticky="w", pady=5)
+        self.select_btn.pack(side="left")
 
         self.mode_label = ctk.CTkLabel(
             settings_inner, text="", font=FONT_MEDIUM_BOLD, text_color=COLORS["primary"]
         )
-        self.mode_label.grid(row=0, column=3, sticky="w", padx=(20, 0), pady=5)
-
-        # ---- 行1：自定义剧名输入（默认隐藏，仅单剧目模式显示） ----
-        self.custom_drama_frame = ctk.CTkFrame(settings_inner, fg_color="transparent")
-        self.custom_drama_frame.grid(
-            row=1, column=0, columnspan=4, sticky="w", pady=(5, 0)
-        )
-
-        ctk.CTkLabel(
-            self.custom_drama_frame,
-            text="自定义剧名",
-            font=FONT_MEDIUM,
-            text_color=COLORS["text_secondary"],
-        ).pack(side="left", padx=(0, 10))
-
-        self.custom_drama_entry = ctk.CTkEntry(
-            self.custom_drama_frame,
-            width=200,
-            height=34,
-            font=FONT_SMALL,
-            corner_radius=8,
-            placeholder_text="留空则使用文件夹名",
-        )
-        self.custom_drama_entry.pack(side="left", padx=(0, 10))
-
-        self.confirm_btn = ctk.CTkButton(
-            self.custom_drama_frame,
-            text="确定",
-            width=60,
-            height=30,
-            corner_radius=8,
-            font=FONT_SMALL_BOLD,
-            fg_color=COLORS["primary"],
-            hover_color=COLORS["primary_hover"],
-            command=self._confirm_custom_drama,
-        )
-        self.confirm_btn.pack(side="left", padx=(0, 6))
-
-        self.clear_btn = ctk.CTkButton(
-            self.custom_drama_frame,
-            text="清空",
-            width=60,
-            height=30,
-            corner_radius=8,
-            font=FONT_SMALL_BOLD,
-            fg_color=COLORS["text_hint"],
-            hover_color="#7A8794",
-            command=self._clear_custom_drama,
-        )
-        self.clear_btn.pack(side="left")
-
-        # 默认隐藏
-        self.custom_drama_frame.pack_forget()
-
-        # 设置 grid 列权重
-        settings_inner.grid_columnconfigure(1, weight=1)
+        self.mode_label.pack(side="left", padx=(20, 0))
 
         # ----- 操作按钮（右对齐执行重命名）-----
         action_frame = ctk.CTkFrame(main, fg_color="transparent")
@@ -323,28 +265,12 @@ class RenameTool(BaseToolWindow):
             command=lambda: self._show_result_list("all_done"),
         ).pack(side="left")
 
-    # ---------- 自定义剧名相关 ----------
-    def _confirm_custom_drama(self):
-        """确定自定义剧名：读取输入框内容，若为空则置为None，然后重新预览"""
-        text = self.custom_drama_entry.get().strip()
-        self.custom_drama_name = text if text else None
-        self.preview()
-
-    def _clear_custom_drama(self):
-        """清空自定义剧名，并重新预览"""
-        self.custom_drama_entry.delete(0, tk.END)
-        self.custom_drama_name = None
-        self.preview()
-
     # ---------- 核心方法 ----------
     def select_path(self):
         path = filedialog.askdirectory(title="选择文件夹或根目录")
         if path:
             self.selected_path = path
             self.path_display.configure(text=path, text_color=COLORS["text_secondary"])
-            # 重置自定义剧名
-            self.custom_drama_name = None
-            self.custom_drama_entry.delete(0, tk.END)
             self.preview()
 
     def _analyze_path(self):
@@ -372,7 +298,6 @@ class RenameTool(BaseToolWindow):
             return "batch", folder_map
 
     def preview(self):
-        # 清空树
         for item in self.tree.get_children():
             self.tree.delete(item)
         self.file_data.clear()
@@ -380,35 +305,24 @@ class RenameTool(BaseToolWindow):
 
         if not self.selected_path:
             messagebox.showwarning("提示", "请先选择路径！")
-            # 隐藏自定义输入框
-            self.custom_drama_frame.pack_forget()
             return
 
         mode, folder_map = self._analyze_path()
         if mode is None:
             messagebox.showwarning("提示", "所选路径下没有找到任何子文件夹，请检查。")
             self.mode_label.configure(text="未找到文件夹", text_color=COLORS["danger"])
-            self.custom_drama_frame.pack_forget()
             return
 
         self.mode = mode
         if mode == "single":
             self.mode_label.configure(text="单剧目模式", text_color=COLORS["primary"])
-            # 显示自定义剧名输入框
-            self.custom_drama_frame.pack(side="left", fill="x", pady=(5, 0))
         else:
             self.mode_label.configure(
                 text=f"批量模式（{len(folder_map)} 个剧目）",
                 text_color=COLORS["primary"],
             )
-            # 隐藏自定义剧名输入框
-            self.custom_drama_frame.pack_forget()
 
         for folder, drama_name in folder_map.items():
-            # 如果是单剧目模式，且自定义名称存在，则使用自定义名称
-            if mode == "single" and self.custom_drama_name:
-                drama_name = self.custom_drama_name
-
             if mode == "batch":
                 folder_name = os.path.basename(folder)
                 parent_iid = f"folder_{folder}"
