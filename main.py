@@ -2,6 +2,7 @@ import customtkinter as ctk
 from config import (
     COLORS,
     TOOLS_CONFIG,
+    TOOLS_FAMTLY,
     FONT_XLARGE_BOLD,
     FONT_MEDIUM,
     FONT_LARGE_BOLD,

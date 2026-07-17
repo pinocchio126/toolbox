@@ -23,8 +23,8 @@ COLORS = {
 
 # ===== 全局字体配置（支持多语言切换） =====
 # 可根据系统语言或用户设置动态切换，此处预设中文与英文备选
-FONT_FAMILY = "微软雅黑"  # 中文系统默认；英文环境可改为 "Segoe UI"
-# FONT_FAMILY = "Segoe UI"       # 取消注释以切换到英文风格
+# FONT_FAMILY = "微软雅黑"  # 中文系统默认；英文环境可改为 "Segoe UI"
+FONT_FAMILY = "Segoe UI"  # 取消注释以切换到英文风格
 
 # 字号层级
 FONT_SIZE_SMALL = 10
@@ -57,4 +57,25 @@ TOOLS_CONFIG = [
     ("文件转换", "🔄", "批量转换文件格式，支持文档与图片类型", "即将上线"),
     ("批量下载", "⬇️", "从链接列表批量下载文件到本地目录", "即将上线"),
     ("数据清洗", "🧹", "批量清洗和格式化数据，支持正则替换规则", "即将上线"),
+]
+
+TOOLS_FAMTLY = [
+    (
+        "ReName",
+        "📁",
+        "Rename video files by weight, supporting automatic episode number recognition and preview",
+        "workable",
+    ),
+    (
+        "UploadTool",
+        "📤",
+        "Drag and drop or select the files, and upload them in batches to the target location.",
+        "workable",
+    ),
+    (
+        "Fill",
+        "✍️",
+        "Configure form fields and automatically fill in the target form in batches",
+        "workable",
+    ),
 ]
