@@ -1,16 +1,16 @@
 import customtkinter as ctk
 
-from config import COLORS, TOOLS_CONFIG, FONT_XLARGE_BOLD, FONT_MEDIUM, FONT_SMALL
 from components import ToolCard
-from tools import FillTool, RenameTool, UploadTool
+from config import COLORS, FONT_MEDIUM, FONT_SMALL, FONT_XLARGE_BOLD, TOOLS_CONFIG
+from tools import RenameTool
 
 
 class MainApp:
     def __init__(self):
         self.root = ctk.CTk()
         self.root.title("自动化工具箱 v1.1")
-        self.root.geometry("1040x700")
-        self.root.minsize(900, 620)
+        self.root.geometry("720x560")
+        self.root.minsize(640, 500)
         self.root.configure(fg_color=COLORS["bg_main"])
 
         available_count = sum(1 for tool in TOOLS_CONFIG if tool[4] == "available")
@@ -67,13 +67,11 @@ class MainApp:
 
         tool_classes = {
             "rename": RenameTool,
-            "upload": UploadTool,
-            "fill": FillTool,
         }
 
         for index, (tool_id, icon, name, description, status) in enumerate(TOOLS_CONFIG):
-            row = index // 3
-            column = index % 3
+            row = index // 2
+            column = index % 2
             card = ToolCard(
                 tools_frame,
                 icon,
@@ -91,7 +89,7 @@ class MainApp:
 
         ctk.CTkLabel(
             footer,
-            text="更多工具模块持续开发中",
+            text="已隐藏未完成的占位工具",
             font=FONT_SMALL,
             text_color=COLORS["text_hint"],
         ).pack(anchor="w")
