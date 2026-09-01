@@ -1,78 +1,95 @@
 import customtkinter as ctk
-from config import (
-    COLORS,
-    TOOLS_CONFIG,
-    FONT_XLARGE_BOLD,
-    FONT_MEDIUM,
-    FONT_LARGE_BOLD,
-    FONT_SMALL_BOLD,
-    FONT_SMALL,
-)
+
 from components import ToolCard
-from tools import RenameTool, UploadTool, FillTool
+from config import COLORS, FONT_MEDIUM, FONT_SMALL, FONT_XLARGE_BOLD, TOOLS_CONFIG
+from tools import RenameTool
 
 
 class MainApp:
     def __init__(self):
         self.root = ctk.CTk()
-        self.root.title("自动化工具箱 v1.0")
-        self.root.geometry("1000x680")
-        self.root.minsize(880, 600)
+        self.root.title("自动化工具箱 v1.1")
+        self.root.geometry("720x560")
+        self.root.minsize(640, 500)
         self.root.configure(fg_color=COLORS["bg_main"])
 
-        header = ctk.CTkFrame(self.root, fg_color=COLORS["bg_white"], corner_radius=10)
-        header.pack(fill="x", padx=20, pady=(20, 0))
+        available_count = sum(1 for tool in TOOLS_CONFIG if tool[4] == "available")
 
-        title_frame = ctk.CTkFrame(header, fg_color="transparent")
-        title_frame.pack(padx=16, pady=12, anchor="w")
+        header = ctk.CTkFrame(self.root, fg_color=COLORS["bg_white"], corner_radius=10)
+        header.pack(fill="x", padx=24, pady=(24, 0))
+
+        header_inner = ctk.CTkFrame(header, fg_color="transparent")
+        header_inner.pack(fill="x", padx=20, pady=16)
+
+        title_block = ctk.CTkFrame(header_inner, fg_color="transparent")
+        title_block.pack(side="left", fill="x", expand=True)
 
         ctk.CTkLabel(
-            title_frame,
+            title_block,
             text="🧰 自动化工具箱",
             font=FONT_XLARGE_BOLD,
             text_color=COLORS["text_primary"],
-        ).pack(side="left", padx=(0, 14))
+        ).pack(anchor="w")
         ctk.CTkLabel(
-            title_frame,
-            text="选择工具模块开始工作，提升批量处理效率",
+            title_block,
+            text="把常用批处理能力集中到一个清爽入口，少点重复操作。",
+            font=FONT_MEDIUM,
+            text_color=COLORS["text_secondary"],
+        ).pack(anchor="w", pady=(6, 0))
+
+        summary = ctk.CTkFrame(header_inner, fg_color=COLORS["bg_main"], corner_radius=8)
+        summary.pack(side="right", padx=(16, 0))
+        ctk.CTkLabel(
+            summary,
+            text=f"{available_count}/{len(TOOLS_CONFIG)}",
+            font=FONT_XLARGE_BOLD,
+            text_color=COLORS["primary"],
+        ).pack(padx=18, pady=(10, 0))
+        ctk.CTkLabel(
+            summary,
+            text="可用工具",
+            font=FONT_SMALL,
+            text_color=COLORS["text_secondary"],
+        ).pack(padx=18, pady=(0, 10))
+
+        section = ctk.CTkFrame(self.root, fg_color="transparent")
+        section.pack(fill="x", padx=24, pady=(20, 8))
+
+        ctk.CTkLabel(
+            section,
+            text="工具列表",
             font=FONT_MEDIUM,
             text_color=COLORS["text_secondary"],
         ).pack(side="left")
 
-        stat_frame = ctk.CTkFrame(self.root, fg_color="transparent")
-        stat_frame.pack(fill="x", padx=20, pady=(16, 8))
-
-        ctk.CTkLabel(
-            stat_frame,
-            text="全部工具（3个可用 / 6个总计）",
-            font=FONT_MEDIUM,
-            text_color=COLORS["text_secondary"],
-        ).pack(anchor="w")
-
         tools_frame = ctk.CTkFrame(self.root, fg_color="transparent")
-        tools_frame.pack(fill="both", expand=True, padx=20, pady=(0, 20))
+        tools_frame.pack(fill="both", expand=True, padx=24, pady=(0, 20))
 
         tool_classes = {
-            "重命名工具": RenameTool,
-            "上传工具": UploadTool,
-            "填表工具": FillTool,
+            "rename": RenameTool,
         }
 
-        for i, (name, icon, desc, status) in enumerate(TOOLS_CONFIG):
-            row = i // 3
-            col = i % 3
-            tool_class = tool_classes.get(name)
-            card = ToolCard(tools_frame, icon, name, desc, status, tool_class)
-            card.grid(row=row, column=col, padx=10, pady=10, sticky="nsew")
-            tools_frame.grid_rowconfigure(row, weight=1)
-            tools_frame.grid_columnconfigure(col, weight=1)
+        for index, (tool_id, icon, name, description, status) in enumerate(TOOLS_CONFIG):
+            row = index // 2
+            column = index % 2
+            card = ToolCard(
+                tools_frame,
+                icon,
+                name,
+                description,
+                status,
+                tool_classes.get(tool_id),
+            )
+            card.grid(row=row, column=column, padx=10, pady=10, sticky="nsew")
+            tools_frame.grid_rowconfigure(row, weight=1, uniform="tool_row")
+            tools_frame.grid_columnconfigure(column, weight=1, uniform="tool_col")
 
         footer = ctk.CTkFrame(self.root, fg_color="transparent")
-        footer.pack(fill="x", padx=20, pady=(0, 20))
+        footer.pack(fill="x", padx=24, pady=(0, 20))
 
         ctk.CTkLabel(
             footer,
-            text="更多工具模块持续开发中",
+            text="已隐藏未完成的占位工具",
             font=FONT_SMALL,
             text_color=COLORS["text_hint"],
         ).pack(anchor="w")
